@@ -176,4 +176,4 @@ def add_photos(message):
 def echo_message(message):
     bot.reply_to(message, 'Не понимаю, что вы пишите, используйте /help')
 
-bot.infinity_polling()
+bot.infinity_polling(timeout=10, long_polling_timeout = 5)
