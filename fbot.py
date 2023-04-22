@@ -1,6 +1,6 @@
 import telebot
 import time
-import pytesseract
+# import pytesseract
 import json
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 from keyboa import Keyboa
