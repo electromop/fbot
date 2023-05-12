@@ -9,17 +9,21 @@ API_TOKEN = '5873525905:AAGkEpG4gQDN-H3LExJ0iqXuMkAlMNdPerQ'
 with open('config.json') as f:
     config = json.load(f)
 
-kb_list = ['Оформить заказ', 'Отмена']
 currency = config["currency"]
 root_pass = config["pass"]
-keyboard = Keyboa(items=kb_list)
 bot = telebot.TeleBot(API_TOKEN)
+
+to_chat_id_list = [642500259, 642500259] 
+
 
 def list_to_str(mass):
     str_mass = ''
     for i in mass:
         str_mass += i
     return str_mass
+
+
+
 
 def get_hello():
     local_time = time.strftime("%H", time.localtime())
@@ -34,6 +38,9 @@ def get_hello():
     elif 5 < local_time <= 11:
         cond = 'Доброе утро'
     return cond
+
+
+
 
 def price(items_amount, yuan_amount, city):
     shipping_price = 1200 * items_amount
@@ -51,6 +58,7 @@ def price(items_amount, yuan_amount, city):
         price_response += f'Доставка до города {city} оплачивается отдельно по прибытию товара в Москву.'
     return price_response
 
+
 bot.set_my_commands([
     telebot.types.BotCommand("/start", "Запуск бота"),
     telebot.types.BotCommand("/help", "Помощь"),
@@ -61,13 +69,15 @@ bot.set_my_commands([
 
 @bot.callback_query_handler(func=lambda call: True)
 def callback_query(call):
-    if call.data == "Оформить заказ":
-        bot.answer_callback_query(call.id, "Заявка отправлена!")
-        bot.send_message(call.message.chat.id, "Ваша заявка оформлена, в ближайшее время администратор напишет вам для окончательного оформления и подтверждения заказа. Напишите /start для дальнейших действий")
-        bot.register_next_step_handler()
-    elif call.data == "Отмена":
+    if call.data == "0":
         bot.answer_callback_query(call.id, "Отмена")
         bot.send_message(call.message.chat.id, "Заявка на оформление отменена. Напишите /start для дальнейших действий")
+    else:
+        bot.answer_callback_query(call.id, "Заявка отправлена!")
+        bot.send_message(call.message.chat.id, "Ваша заявка оформлена, в ближайшее время администратор напишет вам для окончательного оформления и подтверждения заказа. Напишите /start для дальнейших действий")
+        for i in to_chat_id_list:
+            bot.send_message(i, f"{call.data}")
+        bot.register_next_step_handler()
 
 ################################## START ####################################
 @bot.message_handler(commands=['start'])
@@ -135,9 +145,12 @@ def send_order_response(message, order_dict):
         order_dict['order_price'] = str(message.text)
         order_resp = '\n'.join(order_dict['order_arts']) + '\n' + order_dict['order_price'] + ' юаней'
         bot.send_message(message.chat.id, 'Информация по вашему заказу: ' + '\n' + order_resp + '\n' + price(len(order_dict['order_arts']), int(order_dict['order_price']), None))
+        kb_list = [{'Оформить заказ':order_resp}, {'Отмена':'0'}]
+        keyboard = Keyboa(items=kb_list, front_marker="&fruit_id=")
         bot.send_message(
             chat_id=message.chat.id, reply_markup=keyboard(),
-            text="Вы подтверждаете заказ?")
+            text="Вы подтверждаете заказ?"
+            )
     except ValueError:
         bot.send_message(message.chat.id, "Цена должна быть числом, введите /price заново")
 def check_root_op(message):
