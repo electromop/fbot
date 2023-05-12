@@ -51,12 +51,12 @@ def price(items_amount, yuan_amount, city):
         prcnt_cost = price_cost * 1.15
     elif price_cost >= 20000:
         prcnt_cost = price_cost * 1.1
-    price_response = f'Стоимость заказа будет составлять: {round(prcnt_cost)} рублей\n'
+    price_response = f'{round(prcnt_cost)} рублей\n'
     if city == None:
         return price_response
     if city.lower() != 'москва':
         price_response += f'Доставка до города {city} оплачивается отдельно по прибытию товара в Москву.'
-    return price_response
+    return "Стоимость заказа будет составлять: " + price_response
 
 
 bot.set_my_commands([
@@ -141,18 +141,19 @@ def get_order_price(message):
         bot.send_message(message.chat.id, "1 - поменять курс, 2 - залить новые фотки")
         bot.register_next_step_handler(message, check_root_op)
 def send_order_response(message, order_dict):
-    try:
-        order_dict['order_price'] = str(message.text)
-        order_resp = '\n'.join(order_dict['order_arts']) + '\n' + order_dict['order_price'] + ' юаней'
-        bot.send_message(message.chat.id, 'Информация по вашему заказу: ' + '\n' + order_resp + '\n' + price(len(order_dict['order_arts']), int(order_dict['order_price']), None))
-        kb_list = [{'Оформить заказ':order_resp}, {'Отмена':'0'}]
-        keyboard = Keyboa(items=kb_list, front_marker="&fruit_id=")
-        bot.send_message(
-            chat_id=message.chat.id, reply_markup=keyboard(),
-            text="Вы подтверждаете заказ?"
-            )
-    except ValueError:
-        bot.send_message(message.chat.id, "Цена должна быть числом, введите /price заново")
+    # try:
+    order_dict['order_price'] = str(message.text)
+    order_resp = '\n'.join(order_dict['order_arts']) + '\n' + order_dict['order_price'] + ' юаней'
+    bot.send_message(message.chat.id, 'Информация по вашему заказу: ' + '\n' + order_resp + '\n' + price(len(order_dict['order_arts']), int(order_dict['order_price']), None))
+    dat = order_resp + "." + price(len(order_dict['order_arts']), int(order_dict['order_price']), None) + '.' + f"{message.from_user.username}"
+    kb_list = [{'Оформить заказ':f"{dat}"}, {'Отмена':'0'}]
+    keyboard = Keyboa(items=kb_list)
+    bot.send_message(
+        chat_id=message.chat.id, reply_markup=keyboard(),
+        text="Вы подтверждаете заказ?"
+        )
+    # except ValueError:
+    #     bot.send_message(message.chat.id, "Цена должна быть числом, введите /price заново")
 def check_root_op(message):
     try:
         int_op = int(message.text)
